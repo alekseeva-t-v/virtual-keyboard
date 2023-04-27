@@ -455,6 +455,7 @@ class Key {
 const body = document.querySelector('body');
 let langValue = 'ru';
 let capsLockPressed = false;
+let ShiftPressed = false;
 
 function createElement(tagName, className, parent) {
   const element = document.createElement(tagName);
@@ -535,10 +536,6 @@ const winKey = document.querySelector('.keyboard__key_win');
 const altLeftKey = document.querySelector('.keyboard__key_alt-left');
 const altRightKey = document.querySelector('.keyboard__key_alt-right');
 
-function addedActiveClass(key) {
-  key.classList.add('active');
-}
-
 function addingTextToTextField(text) {
   if (capsLockPressed) {
     textField.textContent += text;
@@ -562,22 +559,29 @@ function executeOnClickCapsLock() {
 }
 
 function pressOnKeys(func, ...codes) {
-  let pressed = new Set();
+  let pressed = [];
 
   document.addEventListener('keydown', function (event) {
-    pressed.add(event.code);
+    pressed.push(event.code);
 
     for (let code of codes) {
-      if (!pressed.has(code)) {
+      if (
+        !pressed.find((element) => {
+          return element === code;
+        })
+      ) {
         return;
       }
     }
-    pressed.clear();
+    pressed = [];
     func();
   });
 
   document.addEventListener('keyup', function (event) {
-    pressed.delete(event.code);
+    const searchIndex = pressed.findIndex((code) => {
+      return code === event.code;
+    });
+    pressed.splice(searchIndex, 1);
   });
 }
 
@@ -602,34 +606,18 @@ function getLocalStorage() {
 window.addEventListener('keydown', function (event) {
   keys.forEach((key) => {
     if (event.code === key.id && event.code !== 'CapsLock') {
-      addedActiveClass(key);
+      key.classList.add('active');
     }
   });
-
-  if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-    shiftPressed = true;
-  }
 
   keysForPrint.forEach((key) => {
-    if (event.code === key.id && !shiftPressed) {
+    if (event.code === key.id && !ShiftPressed) {
       addingTextToTextField(key.textContent);
     }
-
-    if (event.code === key.id && shiftPressed) {
-      addingTextToTextField(key.dataset.printShift);
+    if (event.code === key.id && ShiftPressed) {
+      ShiftPressed = false;
     }
   });
-
-  if (
-    (event.code === 'ControlRight' || event.code === 'ControlLeft') &&
-    shiftPressed
-  ) {
-    if (langValue === 'en') {
-      langValue = 'ru';
-    } else {
-      langValue = 'en';
-    }
-  }
 
   if (event.code === 'ArrowUp') {
     addingTextToTextField('↑');
@@ -655,20 +643,16 @@ window.addEventListener('keydown', function (event) {
 window.addEventListener('keyup', function (event) {
   keys.forEach((key) => {
     if (event.code === key.id && event.code !== 'CapsLock') {
-      key.classList.remove('active');
+      setTimeout(() => {
+        key.classList.remove('active');
+      }, 300);
       key.classList.add('remove');
     }
 
     setTimeout(() => {
       key.classList.remove('remove');
-    }, 200);
+    }, 300);
   });
-
-  if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-    setTimeout(() => {
-      shiftPressed = false;
-    }, 200);
-  }
 });
 
 keysForPrint.forEach((key) => {
@@ -677,22 +661,18 @@ keysForPrint.forEach((key) => {
   });
 });
 
+keys.forEach((key) => {
+  key.addEventListener('click', function () {
+    key.classList.add('active');
+    setTimeout(() => {
+      key.classList.remove('active');
+    }, 500);
+  });
+});
+
 capsLockKey.addEventListener('click', function () {
   executeOnClickCapsLock();
 });
-
-altLeftKey.addEventListener('click', function () {
-  if (shiftPressed) {
-    console.log('message');
-    if (langValue === 'en') {
-      langValue = 'ru';
-    } else {
-      langValue = 'en';
-    }
-  }
-});
-
-console.log(langValue);
 
 arrowUpKey.addEventListener('click', function () {
   addingTextToTextField('↑');
@@ -714,3 +694,17 @@ pressOnKeys(() => сhangeLang(), 'ShiftRight', 'AltRight');
 pressOnKeys(() => сhangeLang(), 'ShiftRight', 'AltLeft');
 pressOnKeys(() => сhangeLang(), 'ShiftLeft', 'AltLeft');
 pressOnKeys(() => сhangeLang(), 'ShiftLeft', 'AltRight');
+
+keysForPrint.forEach((key) => {
+  pressOnKeys(
+    () => {
+      textField.textContent += key.dataset.printShift;
+      ShiftPressed = true;
+      setTimeout(() => {
+        ShiftPressed = false;
+      }, 200);
+    },
+    'ShiftRight',
+    key.id
+  );
+});
