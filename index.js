@@ -456,6 +456,7 @@ const body = document.querySelector('body');
 let langValue = 'ru';
 let capsLockPressed = false;
 let ShiftPressed = false;
+let pressed = [];
 
 function createElement(tagName, className, parent) {
   const element = document.createElement(tagName);
@@ -484,8 +485,20 @@ function createKeyboard(keyValue, parent) {
   key.createKey(parent);
 }
 
+function printWithShift(key) {
+  textField.textContent += key.dataset.printShift;
+  ShiftPressed = true;
+  setTimeout(() => {
+    ShiftPressed = false;
+  }, 0);
+}
+
 const container = createElement('div', 'container', body);
+const desc = createElement('p', 'desc', container);
+desc.innerHTML =
+  '* Клавиатура создана в операционной системе Windows<br>Для переключения языка комбинация: ALT + SHIFT';
 const keyboardWrapper = createElement('div', 'keyboard__wrapper', container);
+
 const keyboardKeys = createElement('div', 'keyboard__keys', keyboardWrapper);
 
 const fifthRow = createElement('div', 'keyboard__row', keyboardKeys);
@@ -504,6 +517,9 @@ const firstRow = createElement('div', 'keyboard__row', keyboardKeys);
 firstRow.id = 'firstRow';
 
 const textField = createElement('textarea', 'text', container);
+
+const title = createElement('h1', 'title', container);
+title.textContent = 'RSS Виртуальная клавиатура';
 
 window.addEventListener('load', getLocalStorage());
 
@@ -535,32 +551,29 @@ const controlRightKey = document.querySelector('.keyboard__key_ctrl-right');
 const winKey = document.querySelector('.keyboard__key_win');
 const altLeftKey = document.querySelector('.keyboard__key_alt-left');
 const altRightKey = document.querySelector('.keyboard__key_alt-right');
+const enterKey = document.querySelector('.keyboard__key_enter');
+const tabKey = document.querySelector('.keyboard__key_tab');
+const backspaceKey = document.querySelector('.keyboard__key_backspace');
 
 function addingTextToTextField(text) {
   if (capsLockPressed) {
-    textField.textContent += text;
+    textField.value += text;
   } else {
-    textField.textContent += text.toLowerCase();
+    textField.value += text.toLowerCase();
   }
 }
 
 function executeOnClickCapsLock() {
   if (!capsLockKey.classList.contains('active')) {
-    setTimeout(() => {
-      capsLockKey.classList.add('active');
-      capsLockPressed = true;
-    }, 200);
+    capsLockKey.classList.add('active');
+    capsLockPressed = true;
   } else {
-    setTimeout(() => {
-      capsLockKey.classList.remove('active');
-      capsLockPressed = false;
-    }, 200);
+    capsLockKey.classList.remove('active');
+    capsLockPressed = false;
   }
 }
 
 function pressOnKeys(func, ...codes) {
-  let pressed = [];
-
   document.addEventListener('keydown', function (event) {
     pressed.push(event.code);
 
@@ -583,6 +596,66 @@ function pressOnKeys(func, ...codes) {
     });
     pressed.splice(searchIndex, 1);
   });
+}
+
+function getCaretPosition(textara) {
+  if (document.selection) {
+    textara.focus();
+    let rangeValue = document.selection.createRange();
+    let rangeValueLen = rangeValue.text.length;
+    rangeValue.moveStart('character', -textara.value.length);
+    let start = rangeValue.text.length - rangeValueLen;
+    return {
+      start: start,
+      end: start + rangeValueLen,
+    };
+  } else if (textara.selectionStart || textara.selectionStart == '0') {
+    return {
+      start: textara.selectionStart,
+      end: textara.selectionEnd,
+    };
+  } else {
+    return {
+      start: 0,
+      end: 0,
+    };
+  }
+}
+
+function setCaretPosition(textara, start, end) {
+  if (textara.setSelectionRange) {
+    textara.focus();
+    textara.setSelectionRange(start, end);
+  } else if (textara.createTextRange) {
+    let rangeValue = textara.createTextRange();
+    rangeValue.collapse(true);
+    rangeValue.moveEnd('character', end);
+    rangeValue.moveStart('character', start);
+    rangeValue.select();
+  }
+}
+
+function removeСharacterFromTextara(textara, codeKey) {
+  let positionStart = getCaretPosition(textara).start;
+  let positionEnd = getCaretPosition(textara).end;
+  let position = positionStart;
+  let text = textara.value;
+  if (codeKey === 'Backspace') {
+    if (position !== 0) {
+      textara.value =
+        text.substring(0, positionStart - 1) + text.substring(positionStart);
+      position--;
+      setCaretPosition(textara, positionStart - 1, positionEnd - 1);
+    }
+  }
+  if (codeKey === 'Delete') {
+    if (position !== textara.value.length) {
+      textara.value =
+        text.substring(0, positionStart) + text.substring(positionStart + 1);
+      position--;
+      setCaretPosition(textara, positionStart, positionEnd);
+    }
+  }
 }
 
 function сhangeLang() {
@@ -638,6 +711,14 @@ window.addEventListener('keydown', function (event) {
   if (event.code === 'CapsLock') {
     executeOnClickCapsLock();
   }
+
+  if (event.code === 'Enter') {
+    textField.textContent = textField.textContent + '\n';
+  }
+
+  if (event.code === 'Tab') {
+    textField.textContent = '  ' + textField.textContent;
+  }
 });
 
 window.addEventListener('keyup', function (event) {
@@ -662,12 +743,14 @@ keysForPrint.forEach((key) => {
 });
 
 keys.forEach((key) => {
-  key.addEventListener('click', function () {
-    key.classList.add('active');
-    setTimeout(() => {
-      key.classList.remove('active');
-    }, 500);
-  });
+  if (key.id !== 'CapsLock') {
+    key.addEventListener('click', function () {
+      key.classList.add('active');
+      setTimeout(() => {
+        key.classList.remove('active');
+      }, 500);
+    });
+  }
 });
 
 capsLockKey.addEventListener('click', function () {
@@ -690,21 +773,31 @@ arrowRightKey.addEventListener('click', function () {
   addingTextToTextField('→');
 });
 
+enterKey.addEventListener('click', function () {
+  textField.textContent = textField.textContent + '\n';
+});
+
+tabKey.addEventListener('click', function () {
+  textField.textContent = '  ' + textField.textContent;
+});
+
+backspaceKey.addEventListener('click', function () {
+  removeСharacterFromTextara(textField, 'Backspace');
+});
+
+deleteKey.addEventListener('click', function () {
+  removeСharacterFromTextara(textField, 'Delete');
+});
+
 pressOnKeys(() => сhangeLang(), 'ShiftRight', 'AltRight');
 pressOnKeys(() => сhangeLang(), 'ShiftRight', 'AltLeft');
 pressOnKeys(() => сhangeLang(), 'ShiftLeft', 'AltLeft');
 pressOnKeys(() => сhangeLang(), 'ShiftLeft', 'AltRight');
 
 keysForPrint.forEach((key) => {
-  pressOnKeys(
-    () => {
-      textField.textContent += key.dataset.printShift;
-      ShiftPressed = true;
-      setTimeout(() => {
-        ShiftPressed = false;
-      }, 200);
-    },
-    'ShiftRight',
-    key.id
-  );
+  pressOnKeys(() => printWithShift(key), 'ShiftRight', key.id);
+});
+
+keysForPrint.forEach((key) => {
+  pressOnKeys(() => printWithShift(key), 'ShiftLeft', key.id);
 });
