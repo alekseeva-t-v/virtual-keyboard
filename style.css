@@ -148,10 +148,10 @@ body {
 
 @keyframes keyboard__key_active_animation {
   0% {
-    border-radius: 0;
+    border-radius: 5px;
   }
   100% {
-    border-radius: 10px;
-    transform: scale(0.95);
+    border-radius: 7px;
+    transform: scale(0.90);
   }
 }

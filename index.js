@@ -434,6 +434,7 @@ const keyboardKeysArr = [
   ],
 ];
 
+// Использование классов
 class Key {
   constructor(textContent, className, id, print = false, printShift = '') {
     this.textContent = textContent;
@@ -451,12 +452,6 @@ class Key {
     keyElement.dataset.printShift = this.printShift;
   }
 }
-
-const body = document.querySelector('body');
-let langValue = 'ru';
-let capsLockPressed = false;
-let ShiftPressed = false;
-let pressed = [];
 
 function createElement(tagName, className, parent) {
   const element = document.createElement(tagName);
@@ -493,36 +488,6 @@ function printWithShift(key) {
   }, 0);
 }
 
-const container = createElement('div', 'container', body);
-const desc = createElement('p', 'desc', container);
-desc.innerHTML =
-  '* Клавиатура создана в операционной системе Windows<br>Для переключения языка комбинация: ALT + SHIFT';
-const keyboardWrapper = createElement('div', 'keyboard__wrapper', container);
-
-const keyboardKeys = createElement('div', 'keyboard__keys', keyboardWrapper);
-
-const fifthRow = createElement('div', 'keyboard__row', keyboardKeys);
-fifthRow.id = 'fifthRow';
-
-const fourthRow = createElement('div', 'keyboard__row', keyboardKeys);
-fourthRow.id = 'fourthRow';
-
-const thirdRow = createElement('div', 'keyboard__row', keyboardKeys);
-thirdRow.id = 'thirdRow';
-
-const secondRow = createElement('div', 'keyboard__row', keyboardKeys);
-secondRow.id = 'secondRow';
-
-const firstRow = createElement('div', 'keyboard__row', keyboardKeys);
-firstRow.id = 'firstRow';
-
-const textField = createElement('textarea', 'text', container);
-
-const title = createElement('h1', 'title', container);
-title.textContent = 'RSS Виртуальная клавиатура';
-
-window.addEventListener('load', getLocalStorage());
-
 function createRowsKeyboard() {
   keyboardKeysArr[0].forEach((keyValue) => createKeyboard(keyValue, firstRow));
   keyboardKeysArr[1].forEach((keyValue) => createKeyboard(keyValue, secondRow));
@@ -530,30 +495,6 @@ function createRowsKeyboard() {
   keyboardKeysArr[3].forEach((keyValue) => createKeyboard(keyValue, fourthRow));
   keyboardKeysArr[4].forEach((keyValue) => createKeyboard(keyValue, fifthRow));
 }
-
-createRowsKeyboard();
-
-const keys = document.querySelectorAll('.keyboard__key');
-const keysForPrint = document.querySelectorAll(
-  '.keyboard__key[data-print = true]'
-);
-const spaceKey = document.querySelector('.keyboard__key_space');
-const shiftLeftKey = document.querySelector('.keyboard__key_shift-left');
-const shiftRightKey = document.querySelector('.keyboard__key_shift-right');
-const capsLockKey = document.querySelector('.keyboard__key_caps-lock');
-const deleteKey = document.querySelector('.keyboard__key_del');
-const arrowUpKey = document.querySelector('.keyboard__key_up');
-const arrowDownKey = document.querySelector('.keyboard__key_down');
-const arrowLeftKey = document.querySelector('.keyboard__key_left');
-const arrowRightKey = document.querySelector('.keyboard__key_right');
-const controlLeftKey = document.querySelector('.keyboard__key_ctrl-left');
-const controlRightKey = document.querySelector('.keyboard__key_ctrl-right');
-const winKey = document.querySelector('.keyboard__key_win');
-const altLeftKey = document.querySelector('.keyboard__key_alt-left');
-const altRightKey = document.querySelector('.keyboard__key_alt-right');
-const enterKey = document.querySelector('.keyboard__key_enter');
-const tabKey = document.querySelector('.keyboard__key_tab');
-const backspaceKey = document.querySelector('.keyboard__key_backspace');
 
 function addingTextToTextField(text) {
   if (capsLockPressed) {
@@ -574,6 +515,7 @@ function executeOnClickCapsLock() {
 }
 
 function pressOnKeys(func, ...codes) {
+  // Использование деструктуризации
   document.addEventListener('keydown', function (event) {
     pressed.push(event.code);
 
@@ -661,20 +603,91 @@ function removeСharacterFromTextara(textara, codeKey) {
 function сhangeLang() {
   langValue = langValue === 'en' ? 'ru' : 'en';
   localStorage.setItem('lang', langValue);
-  console.log(langValue);
-  firstRow.innerHTML = '';
-  secondRow.innerHTML = '';
-  thirdRow.innerHTML = '';
-  fourthRow.innerHTML = '';
-  fifthRow.innerHTML = '';
-  createRowsKeyboard();
+  localStorage.setItem('text', textField.value);
+  if (capsLockPressed === true) {
+    localStorage.setItem('capsLock', capsLockPressed);
+  }
+  location.reload();
 }
 
 function getLocalStorage() {
   if (localStorage.getItem('lang')) {
     langValue = localStorage.getItem('lang');
   }
+  if (localStorage.getItem('text')) {
+    textField.value = localStorage.getItem('text');
+    setTimeout(() => {
+      localStorage.removeItem('text');
+    }, 300);
+  }
+
+  if (localStorage.getItem('capsLock')) {
+    capsLockPressed = localStorage.getItem('capsLock');
+    setTimeout(() => {
+      document.querySelector('.keyboard__key_caps-lock').classList.add('active')
+      localStorage.removeItem('capsLock');
+    }, 500);
+  }
 }
+
+let langValue = 'ru';
+let capsLockPressed = false;
+let ShiftPressed = false;
+let pressed = [];
+
+const body = document.querySelector('body');
+const container = createElement('div', 'container', body);
+const desc = createElement('p', 'desc', container);
+desc.innerHTML =
+  '* Клавиатура создана в операционной системе Windows<br>Для переключения языка комбинация: ALT + SHIFT';
+const keyboardWrapper = createElement('div', 'keyboard__wrapper', container);
+
+const keyboardKeys = createElement('div', 'keyboard__keys', keyboardWrapper);
+
+const fifthRow = createElement('div', 'keyboard__row', keyboardKeys);
+fifthRow.id = 'fifthRow';
+
+const fourthRow = createElement('div', 'keyboard__row', keyboardKeys);
+fourthRow.id = 'fourthRow';
+
+const thirdRow = createElement('div', 'keyboard__row', keyboardKeys);
+thirdRow.id = 'thirdRow';
+
+const secondRow = createElement('div', 'keyboard__row', keyboardKeys);
+secondRow.id = 'secondRow';
+
+const firstRow = createElement('div', 'keyboard__row', keyboardKeys);
+firstRow.id = 'firstRow';
+
+const textField = createElement('textarea', 'text', container);
+
+const title = createElement('h1', 'title', container);
+title.textContent = 'RSS Виртуальная клавиатура';
+
+window.addEventListener('load', getLocalStorage());
+createRowsKeyboard();
+
+const keys = document.querySelectorAll('.keyboard__key');
+const keysForPrint = document.querySelectorAll(
+  '.keyboard__key[data-print = true]'
+);
+const spaceKey = document.querySelector('.keyboard__key_space');
+const shiftLeftKey = document.querySelector('.keyboard__key_shift-left');
+const shiftRightKey = document.querySelector('.keyboard__key_shift-right');
+const capsLockKey = document.querySelector('.keyboard__key_caps-lock');
+const deleteKey = document.querySelector('.keyboard__key_del');
+const arrowUpKey = document.querySelector('.keyboard__key_up');
+const arrowDownKey = document.querySelector('.keyboard__key_down');
+const arrowLeftKey = document.querySelector('.keyboard__key_left');
+const arrowRightKey = document.querySelector('.keyboard__key_right');
+const controlLeftKey = document.querySelector('.keyboard__key_ctrl-left');
+const controlRightKey = document.querySelector('.keyboard__key_ctrl-right');
+const winKey = document.querySelector('.keyboard__key_win');
+const altLeftKey = document.querySelector('.keyboard__key_alt-left');
+const altRightKey = document.querySelector('.keyboard__key_alt-right');
+const enterKey = document.querySelector('.keyboard__key_enter');
+const tabKey = document.querySelector('.keyboard__key_tab');
+const backspaceKey = document.querySelector('.keyboard__key_backspace');
 
 window.addEventListener('keydown', function (event) {
   keys.forEach((key) => {
@@ -685,7 +698,9 @@ window.addEventListener('keydown', function (event) {
 
   keysForPrint.forEach((key) => {
     if (event.code === key.id && !ShiftPressed) {
-      addingTextToTextField(key.textContent);
+      setTimeout(() => {
+        addingTextToTextField(key.textContent);
+      }, 300);
     }
     if (event.code === key.id && ShiftPressed) {
       ShiftPressed = false;
@@ -713,11 +728,11 @@ window.addEventListener('keydown', function (event) {
   }
 
   if (event.code === 'Enter') {
-    textField.textContent = textField.textContent + '\n';
+    textField.value = textField.value + '\n';
   }
 
   if (event.code === 'Tab') {
-    textField.textContent = '  ' + textField.textContent;
+    textField.value = '  ' + textField.value;
   }
 });
 
@@ -774,11 +789,11 @@ arrowRightKey.addEventListener('click', function () {
 });
 
 enterKey.addEventListener('click', function () {
-  textField.textContent = textField.textContent + '\n';
+  textField.value = textField.value + '\n';
 });
 
 tabKey.addEventListener('click', function () {
-  textField.textContent = '  ' + textField.textContent;
+  textField.value = '  ' + textField.value;
 });
 
 backspaceKey.addEventListener('click', function () {
