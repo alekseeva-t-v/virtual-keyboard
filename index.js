@@ -481,11 +481,11 @@ function createKeyboard(keyValue, parent) {
 }
 
 function printWithShift(key) {
-  textField.textContent += key.dataset.printShift;
+  textField.value += key.dataset.printShift;
   ShiftPressed = true;
   setTimeout(() => {
     ShiftPressed = false;
-  }, 0);
+  }, 300);
 }
 
 function createRowsKeyboard() {
@@ -624,7 +624,9 @@ function getLocalStorage() {
   if (localStorage.getItem('capsLock')) {
     capsLockPressed = localStorage.getItem('capsLock');
     setTimeout(() => {
-      document.querySelector('.keyboard__key_caps-lock').classList.add('active')
+      document
+        .querySelector('.keyboard__key_caps-lock')
+        .classList.add('active');
       localStorage.removeItem('capsLock');
     }, 500);
   }
@@ -732,7 +734,7 @@ window.addEventListener('keydown', function (event) {
   }
 
   if (event.code === 'Tab') {
-    textField.value = '  ' + textField.value;
+    addingTextToTextField('  ');
   }
 });
 
@@ -793,7 +795,7 @@ enterKey.addEventListener('click', function () {
 });
 
 tabKey.addEventListener('click', function () {
-  textField.value = '  ' + textField.value;
+  addingTextToTextField('  ');
 });
 
 backspaceKey.addEventListener('click', function () {
@@ -810,9 +812,17 @@ pressOnKeys(() => сhangeLang(), 'ShiftLeft', 'AltLeft');
 pressOnKeys(() => сhangeLang(), 'ShiftLeft', 'AltRight');
 
 keysForPrint.forEach((key) => {
-  pressOnKeys(() => printWithShift(key), 'ShiftRight', key.id);
+  pressOnKeys(
+    () => printWithShift(key),
+    'ShiftRight',
+    key.id
+  );
 });
 
 keysForPrint.forEach((key) => {
-  pressOnKeys(() => printWithShift(key), 'ShiftLeft', key.id);
+  pressOnKeys(
+    () => printWithShift(key),
+    'ShiftLeft',
+    key.id
+  );
 });
